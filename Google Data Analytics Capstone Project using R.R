@@ -1,3 +1,4 @@
+##Installing and Loading the necessary packages
 install.packages('tidyverse')
 install.packages('here')
 install.packages('readr')
@@ -14,6 +15,7 @@ library(dplyr)
 library(skimr)
 library(janitor)
 
+##Reading the CSV files and checking the dataset
 daily_steps <- read_csv("dailySteps_merged.csv")
 hourly_calories <- read_csv("hourlyCalories_merged.csv")
 daily_activity <- read_csv("dailyActivity_merged.csv")
@@ -39,6 +41,7 @@ str(daily_intensity)
 str(hourly_steps)
 str(sleep_day)
 
+##Identifying if there are any repetitions and removing them
 n_unique(daily_steps$Id)
 n_unique(hourly_calories$Id)
 n_unique(daily_activity$Id)
@@ -63,6 +66,7 @@ sum(duplicated(daily_intensity))
 sum(duplicated(hourly_steps))
 sum(duplicated(sleep_day))
 
+##Ensuring only the distinct values remain in the dataset
 daily_activity <- daily_activity %>% 
   distinct() %>% 
   drop_na()
@@ -90,6 +94,7 @@ hourly_steps <- hourly_steps %>%
 
 sum(duplicated(sleep_day))
 
+##Cleaning the headings to maintain uniformity
 clean_names(daily_activity)
 daily_activity <- rename_with(daily_activity, tolower)
 
@@ -114,6 +119,7 @@ sleep_day <- rename_with(sleep_day, tolower)
 clean_names(hourly_intensity)
 hourly_intensity <- rename_with(hourly_intensity, tolower)
 
+#Formatting the date and time into the appropriate format
 daily_activity <- daily_activity %>%
   rename(date = activitydate) %>%
   mutate(date = as_date(date, format = "%m/%d/%Y"))
@@ -146,12 +152,15 @@ sleep_day <- sleep_day %>%
   rename(date_time = sleepday) %>%
   mutate(date_time = as.POSIXct(date_time, format = "%m/%d/%Y %I:%M:%S %p", tz = Sys.timezone()))
 
+##Merging the datasets hourly_calories, hourly_intensity and hourly_steps
 hourly_data <- merge(hourly_calories, hourly_intensity, by=c ("id", "date_time"))
 hourly_data <- merge(hourly_data, hourly_steps, by = c("id", "date_time"))
 summary(hourly_data)
 
+##Merging the datasets daily activity and sleep day using the column 'ID'
 daily_activity_sleep <- merge(daily_activity, sleep_day, by=c("id"))
 
+##Conducting analysis to identify trends needed to formulate a plan for the Bellabeat team
 daily_activity %>% 
   select(totalsteps, totaldistance, sedentaryminutes, calories) %>% 
   summary()
@@ -176,7 +185,8 @@ hourly_data %>%
   select(calories, steptotal, totalintensity) %>% 
   summary()
 
-##Correlation between total steps and calories burned
+##Creating visulizations to better represent that data
+#Correlation between total steps and calories burned (Install a package called 'ggpubr' to use the stat_cor function
 
 ggplot(data=daily_activity, aes(x = totalsteps, y = calories)) +
   geom_point()+
